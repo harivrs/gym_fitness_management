@@ -8,7 +8,7 @@ const STORAGE_KEY = 'FITPULSE_GYM_DATA_V2';
 // Initial Seed Data with Team Members & Indian Context
 const DEFAULT_DATA = {
   settings: {
-    gymName: "FitPulse Gym Centre",
+    gymName: "FitPulse Titan Performance Arena",
     address: "67 Anna Salai, Guindy Industrial Estate, Chennai, Tamil Nadu - 600032",
     phone: "+91 (044) 2235-8900",
     email: "support@fitpulse-chennai.in",
