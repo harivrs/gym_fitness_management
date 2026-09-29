@@ -1,4 +1,4 @@
-# FitPulse | Gym & Fitness Club Membership System
+# FitPulse | Gym & Fitness Club Membership System | Gym Freak Perfectos
 > **Course:** Software Engineering (SWE) Course Assignment  
 > **Project:** Centralized Gym & Fitness Club Membership Management System  
 > **Tech Stack:** HTML5, CSS3 (Modern Glassmorphism & Athletic Dark Theme), JavaScript (ES6+), Chart.js, FontAwesome 6, LocalStorage DB.
