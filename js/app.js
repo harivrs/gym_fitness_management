@@ -397,11 +397,13 @@ const App = {
       if (m.status === 'Expiring Soon') statusBadge = `<span class="badge badge-expiring">Expiring Soon</span>`;
       if (m.status === 'Expired') statusBadge = `<span class="badge badge-expired">Expired</span>`;
 
+      const initials = m.name.split(' ').map(n => n[0]).join('').substring(0, 3).toUpperCase();
+
       return `
         <tr>
           <td>
             <div class="member-cell">
-              <img src="${m.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" alt="${this.escapeHTML(m.name)}">
+              <div class="member-avatar-initials">${initials}</div>
               <div class="name-code">
                 <h4>${this.escapeHTML(m.name)}</h4>
                 <span>${m.code} • ${m.gender}, ${m.age}y</span>
@@ -598,10 +600,12 @@ const App = {
       const clientCount = data.members.filter(m => m.trainerId === t.id).length;
       const capacityPercent = Math.min(100, Math.round((clientCount / (t.maxClients || 15)) * 100));
 
+      const trnInitials = t.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
       return `
         <div class="trainer-card">
           <div class="trainer-card-header">
-            <img src="${t.avatar || 'https://images.unsplash.com/photo-1567013127542-490d757e51fc?auto=format&fit=crop&w=250&q=80'}" alt="${this.escapeHTML(t.name)}" class="trainer-avatar">
+            <div class="card-profile-initials" style="width: 72px; height: 72px; font-size: 1.35rem; background: linear-gradient(135deg, #06b6d4, #10b981); border: 2px solid var(--accent-primary); border-radius: var(--radius-md);">${trnInitials}</div>
             <div class="trainer-meta">
               <h3>${this.escapeHTML(t.name)}</h3>
               <div class="trainer-spec">${this.escapeHTML(t.specialization)}</div>
@@ -629,7 +633,7 @@ const App = {
             </div>
           </div>
           <div class="trainer-card-footer">
-            <span style="font-size: 0.8rem; color: var(--text-muted);"><strong style="color: var(--accent-primary);">$${t.hourlyRate || 60}</strong> / private session</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted);"><strong style="color: var(--accent-primary);">${data.settings.currency || '₹'}${t.hourlyRate || 1000}</strong> / private session</span>
             <div style="display: flex; gap: 0.4rem;">
               <button class="btn btn-sm btn-secondary" onclick="App.openEditTrainerModal('${t.id}')">Edit</button>
               <button class="btn btn-sm btn-danger" onclick="App.deleteTrainer('${t.id}')"><i class="fa-solid fa-trash-can"></i></button>
@@ -901,10 +905,11 @@ const App = {
       rosterList.innerHTML = c.enrolledMembers.map(mId => {
         const m = data.members.find(item => item.id === mId);
         if (!m) return '';
-        return `
+          const mInitials = m.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          return `
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
             <div style="display: flex; align-items: center; gap: 0.6rem;">
-              <img src="${m.avatar || ''}" style="width: 28px; height: 28px; border-radius: 50%;" alt="">
+              <div class="member-avatar-initials" style="width: 28px; height: 28px; font-size: 0.7rem;">${mInitials}</div>
               <div>
                 <strong style="font-size: 0.85rem; color: #fff;">${this.escapeHTML(m.name)}</strong>
                 <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 4px;">(${m.code})</span>
@@ -1165,7 +1170,10 @@ const App = {
     // Update Digital Pass Card
     document.getElementById('cardName').textContent = member.name;
     document.getElementById('cardCode').textContent = member.code;
-    document.getElementById('cardAvatar').src = member.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80';
+    const cardInitialsEl = document.getElementById('cardAvatarInitials');
+    if (cardInitialsEl) {
+      cardInitialsEl.textContent = member.name.split(' ').map(n => n[0]).join('').substring(0, 3).toUpperCase();
+    }
     document.getElementById('cardValidFrom').textContent = member.startDate;
     document.getElementById('cardExpiry').textContent = member.expiryDate;
     document.getElementById('cardTierText').textContent = member.tier;
@@ -1184,9 +1192,10 @@ const App = {
     document.getElementById('cardCoach').textContent = coach ? coach.name : "Not Assigned";
 
     if (coach) {
+      const coachInitials = coach.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
       coachContainer.innerHTML = `
         <div style="display: flex; gap: 1rem; align-items: center;">
-          <img src="${coach.avatar}" style="width: 60px; height: 60px; border-radius: var(--radius-md); object-fit: cover; border: 2px solid var(--accent-primary);" alt="">
+          <div class="card-profile-initials" style="width: 58px; height: 58px; font-size: 1.25rem; background: linear-gradient(135deg, #06b6d4, #10b981); border: 2px solid var(--accent-primary); border-radius: var(--radius-md);">${coachInitials}</div>
           <div style="flex: 1;">
             <h4 style="color: #fff; font-size: 1rem;">${this.escapeHTML(coach.name)}</h4>
             <div style="color: var(--accent-primary); font-size: 0.8rem; font-weight: 600;">${this.escapeHTML(coach.specialization)}</div>
