@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitPulse | Gym & Fitness Club Membership System</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN for Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">
+          <i class="fa-solid fa-dumbbell"></i>
+        </div>
+        <div class="brand-text">
+          <h2>FITPULSE</h2>
+          <span>Athletic OS v2.4</span>
+        </div>
+      </div>
+
+      <div class="sidebar-menu">
+        <div class="menu-category">Main Operations</div>
+        <a class="nav-link active" data-view="dashboard">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-link" data-view="members">
+          <i class="fa-solid fa-users"></i>
+          <span>Members</span>
+          <span class="nav-badge" id="sidebar-member-badge">6</span>
+        </a>
+        <a class="nav-link" data-view="trainers">
+          <i class="fa-solid fa-user-ninja"></i>
+          <span>Trainers & Coaches</span>
+        </a>
+        <a class="nav-link" data-view="classes">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Fitness Classes</span>
+          <span class="nav-badge" id="sidebar-class-badge">5</span>
+        </a>
+        <a class="nav-link" data-view="equipment">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+          <span>Gym Equipment</span>
+          <span class="nav-badge warning" id="sidebar-eq-badge">2</span>
+        </a>
+
+        <div class="menu-category">Experience</div>
+        <a class="nav-link" data-view="portal">
+          <i class="fa-solid fa-id-card-clip"></i>
+          <span>Member Portal</span>
+        </a>
+
+        <div class="menu-category">System</div>
+        <a class="nav-link" data-view="settings">
+          <i class="fa-solid fa-sliders"></i>
+          <span>Data & Settings</span>
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="system-status-indicator">
+          <div class="pulse-dot"></div>
+          <div>
+            <div style="font-weight: 600; color: #fff;">Club Online</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);" id="gym-name-sidebar">FitPulse Elite Athletic</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="view-heading">
+            <h1 id="view-title">Club Overview</h1>
+            <p id="view-subtitle">Live health status, subscriptions, and active operations</p>
+          </div>
+        </div>
+
+        <div class="topbar-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="globalSearchInput" placeholder="Quick search members, classes, gear...">
+        </div>
+
+        <div class="topbar-right">
+          <!-- Role Switcher -->
+          <div class="role-switch-container">
+            <button class="role-pill active" id="btnRoleAdmin" onclick="App.switchRole('admin')">
+              <i class="fa-solid fa-shield-halved"></i> Admin
+            </button>
+            <button class="role-pill" id="btnRoleMember" onclick="App.switchRole('member')">
+              <i class="fa-solid fa-user"></i> Member
+            </button>
+          </div>
+
+          <!-- Date Badge -->
+          <div class="date-pill">
+            <i class="fa-regular fa-clock"></i>
+            <span id="liveTimeBadge">--:--:--</span>
+          </div>
+
+          <!-- Notifications trigger -->
+          <button class="icon-btn-badge" title="Notifications" onclick="App.showActivitiesToast()">
+            <i class="fa-regular fa-bell"></i>
+            <span class="badge-count" id="notifCount">3</span>
+          </button>
+
+          <!-- User Chip -->
+          <div class="user-profile-btn" onclick="App.showView('settings')">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Admin Avatar" class="user-avatar">
+            <div class="user-meta">
+              <div class="name">Operations Chief</div>
+              <div class="role">Lead Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Body View Container -->
+      <main class="content-body">
+        
+        <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+        <section class="view-section active" id="view-dashboard">
+          <!-- KPI Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-info">
+                <h3>Active Members</h3>
+                <div class="stat-value" id="kpi-active-members">0</div>
+                <div class="stat-sub"><i class="fa-solid fa-arrow-trend-up"></i> <span id="kpi-total-members">0</span> total registered</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            </div>
+
+            <div class="stat-card cyan">
+              <div class="stat-info">
+                <h3>Monthly Revenue</h3>
+                <div class="stat-value" id="kpi-revenue">$0</div>
+                <div class="stat-sub"><i class="fa-solid fa-shield-check"></i> Subscriptions healthy</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-vault"></i></div>
+            </div>
+
+            <div class="stat-card purple">
+              <div class="stat-info">
+                <h3>Fitness Classes</h3>
+                <div class="stat-value" id="kpi-classes-count">0</div>
+                <div class="stat-sub"><i class="fa-solid fa-person-running"></i> <span id="kpi-enrollments-count">0</span> enrollments</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+            </div>
+
+            <div class="stat-card warning">
+              <div class="stat-info">
+                <h3>Equipment Alerts</h3>
+                <div class="stat-value" id="kpi-eq-alerts">0</div>
+                <div class="stat-sub warning"><i class="fa-solid fa-triangle-exclamation"></i> Action required</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Banner -->
+          <div class="quick-action-strip">
+            <div class="text">
+              <h3>Fast Operations & Shortcuts</h3>
+              <p>Quickly enroll new athletic members, launch fitness classes, or log machinery maintenance.</p>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary" onclick="App.openModal('modal-member')">
+                <i class="fa-solid fa-user-plus"></i> Register Member
+              </button>
+              <button class="btn btn-secondary" onclick="App.openModal('modal-class')">
+                <i class="fa-solid fa-calendar-plus"></i> Create Class
+              </button>
+              <button class="btn btn-secondary" onclick="App.openModal('modal-equipment')">
+                <i class="fa-solid fa-plus"></i> Add Equipment
+              </button>
+            </div>
+          </div>
+
+          <!-- Dashboard Charts & Activity -->
+          <div class="dashboard-grid">
+            <!-- Left: Charts -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h2><i class="fa-solid fa-chart-column"></i> Weekly Attendance & Enrollment Velocity</h2>
+                <span class="badge badge-active">Live Metrics</span>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="weeklyAttendanceChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Right: Membership Tier Distribution -->
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h2><i class="fa-solid fa-pie-chart"></i> Membership Tiers</h2>
+              </div>
+              <div class="chart-wrapper" style="height: 240px;">
+                <canvas id="membershipTierChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity & Maintenance Feed -->
+          <div class="dashboard-grid">
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h2><i class="fa-solid fa-list-check"></i> Operational Activity Log</h2>
+                <button class="btn btn-sm btn-secondary" onclick="App.clearActivities()">Clear Feed</button>
+              </div>
+              <div class="activity-list" id="activityListContainer">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h2><i class="fa-solid fa-circle-exclamation"></i> Subscriptions Due & Alerts</h2>
+              </div>
+              <div id="dashboardExpiringContainer">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 2: MEMBERS ==================== -->
+        <section class="view-section" id="view-members">
+          <div class="section-toolbar">
+            <div class="toolbar-search-filter">
+              <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="memberFilterSearch" placeholder="Search by name, ID or email..." oninput="App.renderMembers()">
+              </div>
+              <select class="filter-select" id="memberFilterTier" onchange="App.renderMembers()">
+                <option value="ALL">All Membership Tiers</option>
+                <option value="VIP Black">VIP Black</option>
+                <option value="Premium">Premium</option>
+                <option value="Standard">Standard</option>
+                <option value="Basic">Basic</option>
+              </select>
+              <select class="filter-select" id="memberFilterStatus" onchange="App.renderMembers()">
+                <option value="ALL">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Expiring Soon">Expiring Soon</option>
+                <option value="Expired">Expired</option>
+              </select>
+            </div>
+            <div class="toolbar-actions">
+              <button class="btn btn-secondary" onclick="App.exportMembersCSV()" title="Export CSV">
+                <i class="fa-solid fa-file-csv"></i> Export
+              </button>
+              <button class="btn btn-primary" onclick="App.openModal('modal-member')">
+                <i class="fa-solid fa-user-plus"></i> New Member
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" id="membersTable">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Tier</th>
+                  <th>Status</th>
+                  <th>Assigned Trainer</th>
+                  <th>Subscription Period</th>
+                  <th>Emergency Contact</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="membersTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 3: TRAINERS ==================== -->
+        <section class="view-section" id="view-trainers">
+          <div class="section-toolbar">
+            <div class="toolbar-search-filter">
+              <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="trainerFilterSearch" placeholder="Search trainers by name or specialization..." oninput="App.renderTrainers()">
+              </div>
+              <select class="filter-select" id="trainerFilterSpec" onchange="App.renderTrainers()">
+                <option value="ALL">All Specializations</option>
+                <option value="Strength">Strength & Bodybuilding</option>
+                <option value="Yoga">Yoga & Mobility</option>
+                <option value="CrossFit">CrossFit & Olympic</option>
+                <option value="HIIT">HIIT & Cardio</option>
+              </select>
+            </div>
+            <div class="toolbar-actions">
+              <button class="btn btn-primary" onclick="App.openModal('modal-trainer')">
+                <i class="fa-solid fa-plus"></i> Add Certified Trainer
+              </button>
+            </div>
+          </div>
+
+          <div class="trainers-grid" id="trainersGridContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 4: FITNESS CLASSES ==================== -->
+        <section class="view-section" id="view-classes">
+          <div class="section-toolbar">
+            <div class="toolbar-search-filter">
+              <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="classFilterSearch" placeholder="Search classes or instructors..." oninput="App.renderClasses()">
+              </div>
+              <select class="filter-select" id="classFilterCategory" onchange="App.renderClasses()">
+                <option value="ALL">All Categories</option>
+                <option value="HIIT">HIIT</option>
+                <option value="Strength">Strength</option>
+                <option value="Yoga">Yoga</option>
+                <option value="Cardio">Cardio / Spin</option>
+                <option value="CrossFit">CrossFit</option>
+              </select>
+            </div>
+            <div class="toolbar-actions">
+              <button class="btn btn-primary" onclick="App.openModal('modal-class')">
+                <i class="fa-solid fa-calendar-plus"></i> Schedule New Class
+              </button>
+            </div>
+          </div>
+
+          <div class="classes-grid" id="classesGridContainer">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 5: EQUIPMENT ==================== -->
+        <section class="view-section" id="view-equipment">
+          <div class="stats-grid" style="margin-bottom: 1.5rem;">
+            <div class="stat-card">
+              <div class="stat-info">
+                <h3>Total Units</h3>
+                <div class="stat-value" id="eq-stat-total">0</div>
+                <div class="stat-sub">Tracked in registry</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h3>Operational</h3>
+                <div class="stat-value" id="eq-stat-oper">0</div>
+                <div class="stat-sub"><i class="fa-solid fa-check"></i> Floor ready</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+            </div>
+
+            <div class="stat-card warning">
+              <div class="stat-info">
+                <h3>Needs Service</h3>
+                <div class="stat-value" id="eq-stat-maint">0</div>
+                <div class="stat-sub warning"><i class="fa-solid fa-bell"></i> Inspection due</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-wrench"></i></div>
+            </div>
+
+            <div class="stat-card danger">
+              <div class="stat-info">
+                <h3>Under Repair</h3>
+                <div class="stat-value" id="eq-stat-repair">0</div>
+                <div class="stat-sub danger"><i class="fa-solid fa-ban"></i> Offline</div>
+              </div>
+              <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            </div>
+          </div>
+
+          <div class="section-toolbar">
+            <div class="toolbar-search-filter">
+              <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="eqFilterSearch" placeholder="Search equipment by name, brand or serial..." oninput="App.renderEquipment()">
+              </div>
+              <select class="filter-select" id="eqFilterCategory" onchange="App.renderEquipment()">
+                <option value="ALL">All Categories</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Free Weights">Free Weights</option>
+                <option value="Resistance">Resistance</option>
+              </select>
+              <select class="filter-select" id="eqFilterStatus" onchange="App.renderEquipment()">
+                <option value="ALL">All Statuses</option>
+                <option value="Operational">Operational</option>
+                <option value="Needs Maintenance">Needs Maintenance</option>
+                <option value="Under Repair">Under Repair</option>
+              </select>
+            </div>
+            <div class="toolbar-actions">
+              <button class="btn btn-primary" onclick="App.openModal('modal-equipment')">
+                <i class="fa-solid fa-plus"></i> Add Equipment
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Equipment Item</th>
+                  <th>Category / Zone</th>
+                  <th>Serial / Brand</th>
+                  <th>Health Status</th>
+                  <th>Last Serviced</th>
+                  <th>Next Service</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="equipmentTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 6: MEMBER PORTAL ==================== -->
+        <section class="view-section" id="view-portal">
+          <div class="section-toolbar">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <span style="font-weight: 600; font-size: 0.9rem;">Simulate Member View:</span>
+              <select class="filter-select" id="portalMemberSelect" onchange="App.renderPortal()" style="min-width: 250px;">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="App.printMemberPass()">
+              <i class="fa-solid fa-print"></i> Print Digital Pass
+            </button>
+          </div>
+
+          <div class="portal-container">
+            <!-- Digital Member Pass -->
+            <div>
+              <div class="member-id-card" id="digitalMemberCard">
+                <div class="card-top">
+                  <div class="card-logo">
+                    <i class="fa-solid fa-dumbbell"></i> FITPULSE
+                  </div>
+                  <span class="badge badge-tier-vip" id="cardTierBadge">VIP Black</span>
+                </div>
+
+                <div class="card-profile">
+                  <img id="cardAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80" alt="Member Avatar">
+                  <div>
+                    <h3 id="cardName">Alexander Wright</h3>
+                    <div class="code" id="cardCode">FP-1001</div>
+                    <span class="badge badge-active" id="cardStatusBadge" style="margin-top: 0.35rem;">Active Member</span>
+                  </div>
+                </div>
+
+                <div class="card-details-grid">
+                  <div class="card-data-point">
+                    <span>Valid From</span>
+                    <strong id="cardValidFrom">2026-01-15</strong>
+                  </div>
+                  <div class="card-data-point">
+                    <span>Expiry Date</span>
+                    <strong id="cardExpiry">2027-01-15</strong>
+                  </div>
+                  <div class="card-data-point">
+                    <span>Assigned Coach</span>
+                    <strong id="cardCoach">Viktor Ramos</strong>
+                  </div>
+                  <div class="card-data-point">
+                    <span>Access Tier</span>
+                    <strong id="cardTierText">VIP All-Access</strong>
+                  </div>
+                </div>
+
+                <div class="barcode-strip">
+                  <!-- Vector Barcode Mockup -->
+                  <svg class="barcode-svg" viewBox="0 0 200 40" preserveAspectRatio="none">
+                    <rect x="0" y="0" width="3" height="40" fill="#fff"/>
+                    <rect x="6" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="12" y="0" width="5" height="40" fill="#fff"/>
+                    <rect x="20" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="26" y="0" width="4" height="40" fill="#fff"/>
+                    <rect x="34" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="40" y="0" width="6" height="40" fill="#fff"/>
+                    <rect x="50" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="56" y="0" width="3" height="40" fill="#fff"/>
+                    <rect x="63" y="0" width="5" height="40" fill="#fff"/>
+                    <rect x="72" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="78" y="0" width="4" height="40" fill="#fff"/>
+                    <rect x="86" y="0" width="3" height="40" fill="#fff"/>
+                    <rect x="94" y="0" width="6" height="40" fill="#fff"/>
+                    <rect x="104" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="110" y="0" width="4" height="40" fill="#fff"/>
+                    <rect x="118" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="124" y="0" width="5" height="40" fill="#fff"/>
+                    <rect x="133" y="0" width="3" height="40" fill="#fff"/>
+                    <rect x="140" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="146" y="0" width="6" height="40" fill="#fff"/>
+                    <rect x="156" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="162" y="0" width="4" height="40" fill="#fff"/>
+                    <rect x="170" y="0" width="3" height="40" fill="#fff"/>
+                    <rect x="178" y="0" width="5" height="40" fill="#fff"/>
+                    <rect x="187" y="0" width="2" height="40" fill="#fff"/>
+                    <rect x="193" y="0" width="4" height="40" fill="#fff"/>
+                  </svg>
+                  <div style="font-size: 0.68rem; color: var(--text-muted); font-family: monospace; margin-top: 4px;">SCAN FOR GYM ENTRY ACCESS</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Portal Details & Enrolled Classes -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+              <div class="dashboard-panel">
+                <div class="panel-header">
+                  <h2><i class="fa-solid fa-dumbbell"></i> My Assigned Personal Trainer</h2>
+                </div>
+                <div id="portalTrainerInfo">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+
+              <div class="dashboard-panel">
+                <div class="panel-header">
+                  <h2><i class="fa-solid fa-calendar-check"></i> My Enrolled Classes</h2>
+                  <button class="btn btn-sm btn-primary" onclick="App.showView('classes')">Book More Classes</button>
+                </div>
+                <div id="portalEnrolledClasses">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== VIEW 7: SETTINGS & BACKUP ==================== -->
+        <section class="view-section" id="view-settings">
+          <div class="dashboard-grid">
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h2><i class="fa-solid fa-building-circle-gear"></i> Fitness Center Profile</h2>
+              </div>
+              <form id="gymSettingsForm" onsubmit="App.saveSettings(event)">
+                <div class="form-grid">
+                  <div class="form-group full-width">
+                    <label>Gym Name</label>
+                    <input type="text" class="form-control" id="setGymName" required>
+                  </div>
+                  <div class="form-group full-width">
+                    <label>Physical Address</label>
+                    <input type="text" class="form-control" id="setAddress" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Phone Line</label>
+                    <input type="text" class="form-control" id="setPhone" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Contact Email</label>
+                    <input type="email" class="form-control" id="setEmail" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Currency Symbol</label>
+                    <input type="text" class="form-control" id="setCurrency" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Hours of Operation</label>
+                    <input type="text" class="form-control" id="setHours" required>
+                  </div>
+                  <div class="form-group full-width" style="margin-top: 0.5rem;">
+                    <button type="submit" class="btn btn-primary">Save Club Details</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="dashboard-panel">
+              <div class="panel-header">
+                <h2><i class="fa-solid fa-database"></i> Database & Backup Tools</h2>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                All gym data operates on browser LocalStorage. You can export complete snapshots, import backups, or reset back to default seed records.
+              </p>
+
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <button class="btn btn-secondary" onclick="App.exportDatabaseJSON()">
+                  <i class="fa-solid fa-file-arrow-down"></i> Export Database Backup (JSON)
+                </button>
+
+                <div>
+                  <input type="file" id="importJsonFileInput" style="display: none;" accept=".json" onchange="App.importDatabaseJSON(event)">
+                  <button class="btn btn-secondary" style="width: 100%;" onclick="document.getElementById('importJsonFileInput').click()">
+                    <i class="fa-solid fa-file-arrow-up"></i> Restore Database Backup (JSON)
+                  </button>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 0.5rem 0;">
+
+                <button class="btn btn-danger" onclick="App.resetToDefault()">
+                  <i class="fa-solid fa-rotate-left"></i> Reset to Factory Seed Data
+                </button>
+              </div>
+
+              <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-surface); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-muted);">
+                <strong style="color: #fff; display: block; margin-bottom: 0.35rem;">Software Engineering Project Note:</strong>
+                Built with full client-side MVC architecture, modular data access layer, relational foreign key emulation (Member to Trainer, Class to Member), and full responsive styling.
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal 1: Member Add / Edit -->
+  <div class="modal-overlay" id="modal-member">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalMemberTitle"><i class="fa-solid fa-user-plus"></i> Member Registration</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-member')">&times;</button>
+      </div>
+      <form id="memberForm" onsubmit="App.saveMemberForm(event)">
+        <div class="modal-body">
+          <input type="hidden" id="memberFormId">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" class="form-control" id="memName" placeholder="e.g. Jordan Hayes" required>
+            </div>
+            <div class="form-group">
+              <label>Email Address *</label>
+              <input type="email" class="form-control" id="memEmail" placeholder="jordan@example.com" required>
+            </div>
+            <div class="form-group">
+              <label>Phone Number *</label>
+              <input type="text" class="form-control" id="memPhone" placeholder="+1 (555) 000-0000" required>
+            </div>
+            <div class="form-group">
+              <label>Gender & Age</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <select class="form-control" id="memGender" style="flex: 1;">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <input type="number" class="form-control" id="memAge" placeholder="Age" min="14" max="95" style="width: 80px;" value="26">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Membership Tier *</label>
+              <select class="form-control" id="memTier" required>
+                <option value="Basic">Basic ($35/mo)</option>
+                <option value="Standard">Standard ($60/mo)</option>
+                <option value="Premium" selected>Premium ($95/mo)</option>
+                <option value="VIP Black">VIP Black ($150/mo)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select class="form-control" id="memStatus">
+                <option value="Active">Active</option>
+                <option value="Expiring Soon">Expiring Soon</option>
+                <option value="Expired">Expired</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Start Date</label>
+              <input type="date" class="form-control" id="memStart" required>
+            </div>
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="date" class="form-control" id="memExpiry" required>
+            </div>
+            <div class="form-group full-width">
+              <label>Assign Personal Trainer</label>
+              <select class="form-control" id="memTrainerSelect">
+                <option value="">No Trainer Assigned</option>
+                <!-- Filled dynamically -->
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label>Emergency Contact</label>
+              <input type="text" class="form-control" id="memEmergency" placeholder="Name & Phone Number">
+            </div>
+            <div class="form-group full-width">
+              <label>Training Notes / Medical Clearance</label>
+              <textarea class="form-control" id="memNotes" rows="2" placeholder="Injuries, goals, dietary restrictions..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModal('modal-member')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveMember">Save Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Trainer Add / Edit -->
+  <div class="modal-overlay" id="modal-trainer">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalTrainerTitle"><i class="fa-solid fa-user-ninja"></i> Trainer Profile</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-trainer')">&times;</button>
+      </div>
+      <form id="trainerForm" onsubmit="App.saveTrainerForm(event)">
+        <div class="modal-body">
+          <input type="hidden" id="trainerFormId">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Coach Name *</label>
+              <input type="text" class="form-control" id="trnName" required placeholder="e.g. Kai Henderson">
+            </div>
+            <div class="form-group">
+              <label>Specialization *</label>
+              <input type="text" class="form-control" id="trnSpec" required placeholder="e.g. Olympic Weightlifting & Power">
+            </div>
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" class="form-control" id="trnEmail" required placeholder="coach@fitpulse.com">
+            </div>
+            <div class="form-group">
+              <label>Phone *</label>
+              <input type="text" class="form-control" id="trnPhone" required placeholder="+1 (555) 123-4567">
+            </div>
+            <div class="form-group">
+              <label>Experience (Years)</label>
+              <input type="number" class="form-control" id="trnExp" value="5" min="1" max="40">
+            </div>
+            <div class="form-group">
+              <label>Max Client Capacity</label>
+              <input type="number" class="form-control" id="trnCapacity" value="15" min="5" max="30">
+            </div>
+            <div class="form-group full-width">
+              <label>Professional Bio</label>
+              <textarea class="form-control" id="trnBio" rows="3" placeholder="Credentials, previous championships, training philosophy..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModal('modal-trainer')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Trainer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Class Add / Edit -->
+  <div class="modal-overlay" id="modal-class">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalClassTitle"><i class="fa-solid fa-calendar-plus"></i> Schedule Fitness Class</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-class')">&times;</button>
+      </div>
+      <form id="classForm" onsubmit="App.saveClassForm(event)">
+        <div class="modal-body">
+          <input type="hidden" id="classFormId">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Class Title *</label>
+              <input type="text" class="form-control" id="clsTitle" required placeholder="e.g. Iron Kettlebell Crucible">
+            </div>
+            <div class="form-group">
+              <label>Category *</label>
+              <select class="form-control" id="clsCategory" required>
+                <option value="HIIT">HIIT</option>
+                <option value="Strength">Strength</option>
+                <option value="Yoga">Yoga</option>
+                <option value="Cardio">Cardio / Spin</option>
+                <option value="CrossFit">CrossFit</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Lead Coach *</label>
+              <select class="form-control" id="clsTrainerSelect" required>
+                <!-- Filled dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Day(s) of Week</label>
+              <input type="text" class="form-control" id="clsDays" required placeholder="e.g. Mon, Wed, Fri">
+            </div>
+            <div class="form-group">
+              <label>Time Slot</label>
+              <input type="text" class="form-control" id="clsTime" required placeholder="e.g. 07:00 AM - 08:00 AM">
+            </div>
+            <div class="form-group">
+              <label>Room / Studio Zone</label>
+              <input type="text" class="form-control" id="clsRoom" required placeholder="Studio B (Floor 2)">
+            </div>
+            <div class="form-group">
+              <label>Max Class Capacity</label>
+              <input type="number" class="form-control" id="clsCapacity" value="16" min="4" max="40">
+            </div>
+            <div class="form-group">
+              <label>Intensity Level</label>
+              <select class="form-control" id="clsIntensity">
+                <option value="Moderate">Moderate</option>
+                <option value="High" selected>High</option>
+                <option value="Extreme">Extreme</option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label>Class Overview</label>
+              <textarea class="form-control" id="clsDesc" rows="2" placeholder="Workout structure, target heart-rate zones, equipment needed..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModal('modal-class')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Schedule Class</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Class Enrollment Manager -->
+  <div class="modal-overlay" id="modal-enroll">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-clipboard-user"></i> Class Enrollment & Roster</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-enroll')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4 id="enrollModalClassTitle" style="color: #fff; margin-bottom: 0.25rem;">Class Title</h4>
+        <p id="enrollModalClassSub" style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">Time & Instructor</p>
+
+        <!-- Enroll Form -->
+        <div style="background: var(--bg-surface); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid var(--border-subtle);">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 0.4rem;">Enroll a Registered Member</label>
+          <div style="display: flex; gap: 0.6rem;">
+            <select class="form-control" id="enrollMemberSelect" style="flex: 1;">
+              <!-- Populated dynamically -->
+            </select>
+            <button class="btn btn-primary" onclick="App.enrollSelectedMember()">Enroll</button>
+          </div>
+        </div>
+
+        <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: var(--text-secondary);">Currently Enrolled Roster (<span id="enrollCountSpan">0</span>):</h4>
+        <div id="enrolledMembersList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 220px; overflow-y: auto;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal('modal-enroll')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: Equipment Add / Edit -->
+  <div class="modal-overlay" id="modal-equipment">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalEqTitle"><i class="fa-solid fa-screwdriver-wrench"></i> Equipment Registration</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-equipment')">&times;</button>
+      </div>
+      <form id="equipmentForm" onsubmit="App.saveEquipmentForm(event)">
+        <div class="modal-body">
+          <input type="hidden" id="eqFormId">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Equipment Name *</label>
+              <input type="text" class="form-control" id="eqName" required placeholder="e.g. Rogue Echo Assault Bike #2">
+            </div>
+            <div class="form-group">
+              <label>Category *</label>
+              <select class="form-control" id="eqCategory" required>
+                <option value="Cardio">Cardio</option>
+                <option value="Free Weights">Free Weights</option>
+                <option value="Resistance">Resistance Machine</option>
+                <option value="Functional">Functional Rig</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Gym Floor Zone</label>
+              <input type="text" class="form-control" id="eqZone" required placeholder="Floor 1 - Cardio Deck">
+            </div>
+            <div class="form-group">
+              <label>Manufacturer / Brand</label>
+              <input type="text" class="form-control" id="eqBrand" placeholder="e.g. Rogue Fitness">
+            </div>
+            <div class="form-group">
+              <label>Serial / Barcode #</label>
+              <input type="text" class="form-control" id="eqSerial" placeholder="e.g. RG-EB-9901">
+            </div>
+            <div class="form-group">
+              <label>Current Status</label>
+              <select class="form-control" id="eqStatus">
+                <option value="Operational">Operational</option>
+                <option value="Needs Maintenance">Needs Maintenance</option>
+                <option value="Under Repair">Under Repair</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Purchase Date</label>
+              <input type="date" class="form-control" id="eqPurchaseDate">
+            </div>
+            <div class="form-group">
+              <label>Last Serviced Date</label>
+              <input type="date" class="form-control" id="eqLastService">
+            </div>
+            <div class="form-group">
+              <label>Next Service Due</label>
+              <input type="date" class="form-control" id="eqNextService">
+            </div>
+            <div class="form-group full-width">
+              <label>Maintenance Notes & Diagnosis</label>
+              <textarea class="form-control" id="eqNotes" rows="2" placeholder="Inspection logs, belt tightness, warranty details..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="App.closeModal('modal-equipment')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Equipment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- App Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
