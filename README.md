@@ -99,7 +99,7 @@ git push -u origin main
 
 ---
 
-### 🌿 Git Operations for Academic Evaluation (Branching & PRs)
+### 🌿6. Git Operations for Academic Evaluation (Branching & PRs)
 
 If your Software Engineering course rubric grades you on git workflows (branches, merges, pull requests):
 
@@ -122,7 +122,7 @@ git push origin main
 
 ---
 
-## 📁 6. Project Structure
+## 📁 7. Project Structure
 
 ```text
 SWE_AS3/
@@ -135,3 +135,8 @@ SWE_AS3/
 ├── assets/                 # Folder for local images and static assets (if needed)
 └── README.md               # Project documentation and Git guide
 ```
+
+
+
+
+
