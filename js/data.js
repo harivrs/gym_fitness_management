@@ -9,7 +9,7 @@ const STORAGE_KEY = 'FITPULSE_GYM_DATA_V2';
 const DEFAULT_DATA = {
   settings: {
     gymName: "FitPulse Elite Athletic Club",
-    address: "42 Anna Salai, Guindy Industrial Estate, Chennai, Tamil Nadu - 600032",
+    address: "67 Anna Salai, Guindy Industrial Estate, Chennai, Tamil Nadu - 600032",
     phone: "+91 (044) 2235-8900",
     email: "support@fitpulse-chennai.in",
     currency: "₹",
@@ -30,7 +30,7 @@ const DEFAULT_DATA = {
       startDate: "2026-01-15",
       expiryDate: "2027-01-15",
       trainerId: "trn-1",
-      emergencyContact: "R. Venkatesh (+91 98401 98765)",
+      emergencyContact: "+91 98401 98765",
       notes: "Focus on hypertrophy & explosive athletic conditioning. Advanced barbell work."
     },
     {
@@ -46,7 +46,7 @@ const DEFAULT_DATA = {
       startDate: "2026-02-01",
       expiryDate: "2026-11-01",
       trainerId: "trn-2",
-      emergencyContact: "S. Senthil (+91 94440 12345)",
+      emergencyContact: "+91 94440 12345",
       notes: "Cardio endurance, 10K marathon preparation, and core functional mobility."
     },
     {
@@ -62,7 +62,7 @@ const DEFAULT_DATA = {
       startDate: "2025-10-10",
       expiryDate: "2026-10-10",
       trainerId: "trn-3",
-      emergencyContact: "J. Jayakumar (+91 98842 99887)",
+      emergencyContact: "+91 98842 99887",
       notes: "Powerlifting progression: Squat, Bench Press, and Deadlift biomechanics."
     },
     {
@@ -78,7 +78,7 @@ const DEFAULT_DATA = {
       startDate: "2026-03-01",
       expiryDate: "2027-03-01",
       trainerId: "trn-1",
-      emergencyContact: "B. Balasundaram (+91 97910 44321)",
+      emergencyContact: "+91 97910 44321",
       notes: "High intensity functional agility and upper-body strength conditioning."
     }
   ],
