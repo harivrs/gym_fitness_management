@@ -70,19 +70,14 @@
           <i class="fa-solid fa-sliders"></i>
           <span>Data & Settings</span>
         </a>
-        <a class="nav-link" onclick="App.showDbInspectorModal()" style="cursor: pointer;">
-          <i class="fa-solid fa-server"></i>
-          <span>Backend & Database</span>
-          <span class="nav-badge" style="background:#10b981; color:#0f172a; font-weight:700;">SQL</span>
-        </a>
       </div>
 
       <div class="sidebar-footer">
-        <div class="system-status-indicator">
+        <div class="system-status-indicator" onclick="App.showDbInspectorModal()" style="cursor: pointer;" title="Inspect SQLite Database & Server">
           <div class="pulse-dot"></div>
           <div>
-            <div style="font-weight: 600; color: #fff;">Club Online</div>
-            <div style="font-size: 0.7rem; color: var(--text-muted);" id="gym-name-sidebar">FitPulse Elite Athletic</div>
+            <div style="font-weight: 600; color: #fff;">Club Online (SQLite)</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);" id="gym-name-sidebar">FitPulse Titan Performance Arena</div>
           </div>
         </div>
       </div>
@@ -960,21 +955,19 @@
   </div>
 
   <!-- Modal: Backend & SQLite Database Inspector -->
-  <div class="modal-backdrop" id="modal-db-inspector">
-    <div class="modal-dialog modal-xl">
+  <div class="modal-overlay" id="modal-db-inspector">
+    <div class="modal-container modal-xl">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.1rem;">
             <i class="fa-solid fa-server"></i>
           </div>
           <div>
-            <h3 style="margin: 0; font-size: 1.15rem;">FitPulse Backend & SQLite Relational Database</h3>
+            <h3 style="margin: 0; font-size: 1.15rem; color: #fff;">FitPulse Backend & SQLite Relational Database</h3>
             <span style="font-size: 0.75rem; color: var(--text-muted);">Software Engineering 3-Tier Architecture & Live Query Engine</span>
           </div>
         </div>
-        <button class="modal-close" onclick="App.closeModal('modal-db-inspector')">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-db-inspector')">&times;</button>
       </div>
       <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
         
