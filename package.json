@@ -1,0 +1,26 @@
+{
+  "name": "swe_as3",
+  "version": "1.0.0",
+  "description": "> **Course:** Software Engineering (SWE) Course Assignment  \r > **Project:** Centralized Gym & Fitness Club Membership Management System  \r > **Tech Stack:** HTML5, CSS3 (Modern Glassmorphism & Athletic Dark Theme), JavaScript (ES6+), Chart.js, FontAwesome 6, LocalStorage DB.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harivrs/gym_fitness_management.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/harivrs/gym_fitness_management/issues"
+  },
+  "homepage": "https://github.com/harivrs/gym_fitness_management#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0"
+  }
+}

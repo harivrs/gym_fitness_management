@@ -70,6 +70,11 @@
           <i class="fa-solid fa-sliders"></i>
           <span>Data & Settings</span>
         </a>
+        <a class="nav-link" onclick="App.showDbInspectorModal()" style="cursor: pointer;">
+          <i class="fa-solid fa-server"></i>
+          <span>Backend & Database</span>
+          <span class="nav-badge" style="background:#10b981; color:#0f172a; font-weight:700;">SQL</span>
+        </a>
       </div>
 
       <div class="sidebar-footer">
@@ -103,6 +108,12 @@
         </div>
 
         <div class="topbar-right">
+          <!-- Backend & Database Status Pill -->
+          <button class="db-status-pill online" id="backendStatusPill" onclick="App.showDbInspectorModal()" title="Inspect Backend REST API & SQLite Database">
+            <span class="db-status-dot online" id="backendStatusDot"></span>
+            <span id="backendStatusText"><i class="fa-solid fa-database"></i> SQLite3 (Port 3000)</span>
+          </button>
+
           <!-- The Role Switcher -->
           <div class="role-switch-container">
             <button class="role-pill active" id="btnRoleAdmin" onclick="App.switchRole('admin')">
@@ -598,13 +609,17 @@
 
             <div class="dashboard-panel">
               <div class="panel-header">
-                <h2><i class="fa-solid fa-database"></i> Database & Backup Tools</h2>
+                <h2><i class="fa-solid fa-database"></i> Database & Backend Architecture</h2>
               </div>
               <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-                All gym data operates on browser LocalStorage. You can export complete snapshots, import backups, or reset back to default seed records.
+                FitPulse runs on a <strong>3-Tier Software Architecture</strong>: Frontend UI &rarr; Node.js Express REST API &rarr; SQLite3 Relational Database (<code style="color:#34d399;">fitpulse.db</code>).
               </p>
 
               <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <button class="btn btn-primary" onclick="App.showDbInspectorModal()">
+                  <i class="fa-solid fa-server"></i> Open Backend & SQLite Inspector (Live SQL Console)
+                </button>
+
                 <button class="btn btn-secondary" onclick="App.exportDatabaseJSON()">
                   <i class="fa-solid fa-file-arrow-down"></i> Export Database Backup (JSON)
                 </button>
@@ -619,13 +634,15 @@
                 <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 0.5rem 0;">
 
                 <button class="btn btn-danger" onclick="App.resetToDefault()">
-                  <i class="fa-solid fa-rotate-left"></i> Reset to Factory Seed Data
+                  <i class="fa-solid fa-rotate-left"></i> Reset SQLite & Local Data to Seed Defaults
                 </button>
               </div>
 
-              <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-surface); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-muted);">
-                <strong style="color: #fff; display: block; margin-bottom: 0.35rem;">Software Engineering Project Note:</strong>
-                Built with full client-side MVC architecture, modular data access layer, relational foreign key emulation (Member to Trainer, Class to Member), and full responsive styling.
+              <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-surface); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-subtle);">
+                <strong style="color: #fff; display: block; margin-bottom: 0.35rem;">Software Engineering 3-Tier Architecture:</strong>
+                <div>• <strong>Presentation Tier:</strong> HTML5, CSS3, ES6 JavaScript, Chart.js</div>
+                <div>• <strong>Application Tier:</strong> Node.js (v24), Express 5 REST API (<code style="color:#38bdf8;">/api/*</code>)</div>
+                <div>• <strong>Database Tier:</strong> SQLite3 (<code style="color:#34d399;">fitpulse.db</code>) with Relational Schema, ACID Transactions, and Foreign Keys</div>
               </div>
             </div>
           </div>
@@ -939,6 +956,141 @@
           <button type="submit" class="btn btn-primary">Save Equipment</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Backend & SQLite Database Inspector -->
+  <div class="modal-backdrop" id="modal-db-inspector">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.1rem;">
+            <i class="fa-solid fa-server"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem;">FitPulse Backend & SQLite Relational Database</h3>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Software Engineering 3-Tier Architecture & Live Query Engine</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="App.closeModal('modal-db-inspector')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+        
+        <!-- Architecture Status Banner -->
+        <div class="db-inspector-banner">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+              <span class="db-status-dot online" id="inspectorStatusDot"></span>
+              <strong style="color: #fff; font-size: 0.95rem;" id="inspectorStatusTitle">Backend REST API & SQLite Online</strong>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);" id="inspectorStatusDesc">
+              Server: Node.js Express (<code style="color:#38bdf8;">http://localhost:3000</code>) &bull; Database: SQLite3 (<code style="color:#34d399;">fitpulse.db</code>) &bull; ACID Relational Engine
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-secondary btn-sm" onclick="App.refreshDbInspector()" title="Refresh DB Stats">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="App.syncWithBackend(true)">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Sync Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Real-Time Database Metrics -->
+        <div class="db-inspector-stats">
+          <div class="db-stat-box">
+            <div class="label">Database File</div>
+            <div class="val" style="font-size: 0.95rem; color: #34d399;" id="statDbFile">fitpulse.db</div>
+          </div>
+          <div class="db-stat-box">
+            <div class="label">Storage Size</div>
+            <div class="val" id="statDbSize">-- KB</div>
+          </div>
+          <div class="db-stat-box">
+            <div class="label">Members</div>
+            <div class="val" id="statDbMembers">--</div>
+          </div>
+          <div class="db-stat-box">
+            <div class="label">Trainers</div>
+            <div class="val" id="statDbTrainers">--</div>
+          </div>
+          <div class="db-stat-box">
+            <div class="label">Classes</div>
+            <div class="val" id="statDbClasses">--</div>
+          </div>
+          <div class="db-stat-box">
+            <div class="label">Enrollments</div>
+            <div class="val" id="statDbEnrollments">--</div>
+          </div>
+          <div class="db-stat-box">
+            <div class="label">Equipment</div>
+            <div class="val" id="statDbEquipment">--</div>
+          </div>
+        </div>
+
+        <!-- Live SQL Console for Presentation Demo -->
+        <div class="sql-console-wrapper">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div style="font-weight: 600; font-size: 0.88rem; color: #fff;">
+              <i class="fa-solid fa-terminal" style="color: #38bdf8; margin-right: 0.35rem;"></i> Live SQL Query Console (Academic Presentation Demo)
+            </div>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Direct SQL queries on SQLite table records</span>
+          </div>
+
+          <div class="sql-preset-chips">
+            <span style="font-size: 0.72rem; color: var(--text-muted); align-self: center;">Quick Queries:</span>
+            <button class="sql-preset-btn" onclick="App.setSqlPreset('SELECT name, tier, phone, status FROM members;')">SELECT Members</button>
+            <button class="sql-preset-btn" onclick="App.setSqlPreset('SELECT name, specialization, hourlyRate, rating FROM trainers;')">SELECT Trainers</button>
+            <button class="sql-preset-btn" onclick="App.setSqlPreset('SELECT c.title, c.dayOfWeek, t.name as trainer FROM classes c LEFT JOIN trainers t ON c.trainerId = t.id;')">JOIN Classes & Trainers</button>
+            <button class="sql-preset-btn" onclick="App.setSqlPreset('SELECT status, COUNT(*) as total_units FROM equipment GROUP BY status;')">GROUP BY Equipment Status</button>
+          </div>
+
+          <textarea class="sql-textarea" id="sqlConsoleQuery" rows="3" placeholder="Enter standard SQL query, e.g.: SELECT * FROM members;"></textarea>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+            <span style="font-size: 0.72rem; color: var(--text-muted);" id="sqlExecStatus">Press 'Execute SQL' to run query directly against SQLite engine</span>
+            <button class="btn btn-primary btn-sm" onclick="App.runLiveSQLQuery()">
+              <i class="fa-solid fa-play"></i> Execute SQL
+            </button>
+          </div>
+
+          <!-- Query Results Display -->
+          <div class="sql-result-area" id="sqlResultArea">
+            <div style="padding: 1rem; color: var(--text-muted); text-align: center; font-size: 0.8rem;">
+              Query results will display here. Click one of the quick queries above and click "Execute SQL".
+            </div>
+          </div>
+        </div>
+
+        <!-- Relational Schema Viewer -->
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+          <div style="font-weight: 600; font-size: 0.88rem; color: #fff; margin-bottom: 0.35rem;">
+            <i class="fa-solid fa-sitemap" style="color: #a855f7; margin-right: 0.35rem;"></i> Relational Schema & Foreign Key Constraints
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+            SQLite Relational Architecture design with Referential Integrity:
+          </div>
+          <div class="schema-badge-list">
+            <div class="schema-badge"><code>members</code> (PK: id, FK: trainerId &rarr; trainers.id)</div>
+            <div class="schema-badge"><code>trainers</code> (PK: id)</div>
+            <div class="schema-badge"><code>classes</code> (PK: id, FK: trainerId &rarr; trainers.id)</div>
+            <div class="schema-badge"><code>class_enrollments</code> (Junction M:N: classId &rarr; classes.id, memberId &rarr; members.id)</div>
+            <div class="schema-badge"><code>equipment</code> (PK: id)</div>
+            <div class="schema-badge"><code>activities</code> (PK: id, timestamp)</div>
+            <div class="schema-badge"><code>settings</code> (PK: id = 1)</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="App.closeModal('modal-db-inspector')">Close Inspector</button>
+        <button type="button" class="btn btn-primary" onclick="App.syncWithBackend(true)">
+          <i class="fa-solid fa-rotate"></i> Synchronize with SQLite
+        </button>
+      </div>
     </div>
   </div>
 

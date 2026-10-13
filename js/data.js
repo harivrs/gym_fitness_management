@@ -356,8 +356,65 @@ const DEFAULT_DATA = {
   ]
 };
 
-// Database Access Object (DAO)
+// Backend REST API Configuration (handles both localhost server & file:// protocol)
+const API_BASE = (window.location.protocol.startsWith('http')) ? '' : 'http://localhost:3000';
+
+// Database Access Object (DAO) with Dual Engine: SQLite3 REST API + LocalStorage Cache Fallback
 const DB = {
+  isBackendConnected: false,
+  backendInfo: null,
+  syncTimeout: null,
+
+  async checkBackend() {
+    try {
+      const res = await fetch(`${API_BASE}/api/status`);
+      if (res.ok) {
+        const info = await res.json();
+        this.isBackendConnected = true;
+        this.backendInfo = info;
+        this.updateConnectionUI(true, info);
+        // Pull latest state from SQLite database into local cache
+        await this.pullFromBackend();
+        return true;
+      }
+    } catch (e) {
+      // Backend not running; fallback to LocalStorage
+      this.isBackendConnected = false;
+      this.backendInfo = null;
+      this.updateConnectionUI(false);
+      return false;
+    }
+  },
+
+  async pullFromBackend() {
+    try {
+      const res = await fetch(`${API_BASE}/api/data`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.members) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          return data;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not pull from backend REST API:", e);
+    }
+    return this.load();
+  },
+
+  async pushToBackend(data) {
+    if (!this.isBackendConnected) return;
+    try {
+      await fetch(`${API_BASE}/api/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch (e) {
+      console.warn("Backend sync push failed:", e);
+    }
+  },
+
   load() {
     try {
       localStorage.removeItem('FITPULSE_GYM_DATA_V1');
@@ -376,14 +433,28 @@ const DB = {
   save(data) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      // Asynchronously propagate state mutation to SQLite backend
+      if (this.isBackendConnected) {
+        clearTimeout(this.syncTimeout);
+        this.syncTimeout = setTimeout(() => {
+          this.pushToBackend(data);
+        }, 150);
+      }
     } catch (e) {
-      console.error("Error saving to localStorage:", e);
+      console.error("Error saving data:", e);
     }
   },
 
-  reset() {
+  async reset() {
     localStorage.removeItem(STORAGE_KEY);
     this.save(DEFAULT_DATA);
+    if (this.isBackendConnected) {
+      try {
+        await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
+      } catch (e) {
+        console.warn("Reset error:", e);
+      }
+    }
     return JSON.parse(JSON.stringify(DEFAULT_DATA));
   },
 
@@ -420,5 +491,50 @@ const DB = {
     data.activities.unshift(newAct);
     if (data.activities.length > 30) data.activities.pop();
     this.save(data);
+  },
+
+  // Live SQL Query Executor for interactive academic presentation
+  async executeSQL(query) {
+    if (!this.isBackendConnected) {
+      throw new Error("Backend server is offline. Please launch 'npm start' in terminal.");
+    }
+    const res = await fetch(`${API_BASE}/api/sql`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || "SQL execution failed");
+    return result;
+  },
+
+  async fetchBackendStats() {
+    if (!this.isBackendConnected) return null;
+    try {
+      const res = await fetch(`${API_BASE}/api/status`);
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  },
+
+  updateConnectionUI(isOnline, info) {
+    const pill = document.getElementById('backendStatusPill');
+    const text = document.getElementById('backendStatusText');
+    const dot = document.getElementById('backendStatusDot');
+    if (!pill || !text) return;
+
+    if (isOnline) {
+      pill.className = 'db-status-pill online';
+      if (dot) dot.className = 'db-status-dot online';
+      text.innerHTML = `<i class="fa-solid fa-database"></i> SQLite3 (Port 3000)`;
+      pill.title = `Connected to Node.js Express REST API & SQLite (fitpulse.db). Click to inspect.`;
+    } else {
+      pill.className = 'db-status-pill offline';
+      if (dot) dot.className = 'db-status-dot offline';
+      text.innerHTML = `<i class="fa-solid fa-hard-drive"></i> LocalStorage`;
+      pill.title = `Backend server offline. Running on LocalStorage. Run 'node server.js' to connect.`;
+    }
   }
 };
+

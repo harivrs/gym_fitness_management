@@ -26,6 +26,20 @@ const App = {
 
     // Init Analytics Charts
     this.initCharts();
+
+    // Check Backend REST API & SQLite Connection
+    DB.checkBackend().then(connected => {
+      if (connected) {
+        this.renderAll();
+        this.updateCharts();
+        console.log("Connected to SQLite backend REST API.");
+      }
+    });
+
+    // Check backend health periodically
+    setInterval(() => {
+      DB.checkBackend();
+    }, 15000);
   },
 
   startClock() {
@@ -1438,6 +1452,152 @@ const App = {
     const data = DB.load();
     const count = data.activities.length;
     this.showToast(`${count} recent operational activities logged`, "info");
+  },
+
+  /* ==========================================
+     BACKEND & SQLITE DATABASE INSPECTOR CONTROLLER
+     ========================================== */
+
+  showDbInspectorModal() {
+    this.openModal('modal-db-inspector');
+    this.refreshDbInspector();
+    const queryEl = document.getElementById('sqlConsoleQuery');
+    if (queryEl && !queryEl.value.trim()) {
+      queryEl.value = 'SELECT name, tier, phone, status FROM members;';
+    }
+  },
+
+  async refreshDbInspector() {
+    const stats = await DB.fetchBackendStats();
+    const isOnline = !!stats;
+
+    const dot = document.getElementById('inspectorStatusDot');
+    const title = document.getElementById('inspectorStatusTitle');
+    const desc = document.getElementById('inspectorStatusDesc');
+
+    if (isOnline) {
+      if (dot) dot.className = 'db-status-dot online';
+      if (title) title.textContent = 'Backend REST API & SQLite Database Online';
+      if (desc) desc.innerHTML = `Server: Node.js Express (<code>http://localhost:3000</code>) &bull; DB: SQLite3 (<code>${stats.databaseFile || 'fitpulse.db'}</code>) &bull; Size: ${stats.fileSizeKB || 72} KB`;
+      
+      const tables = stats.tables || {};
+      const elFile = document.getElementById('statDbFile');
+      const elSize = document.getElementById('statDbSize');
+      const elMem = document.getElementById('statDbMembers');
+      const elTrn = document.getElementById('statDbTrainers');
+      const elCls = document.getElementById('statDbClasses');
+      const elEnr = document.getElementById('statDbEnrollments');
+      const elEq = document.getElementById('statDbEquipment');
+
+      if (elFile) elFile.textContent = stats.databaseFile || 'fitpulse.db';
+      if (elSize) elSize.textContent = `${stats.fileSizeKB || 72} KB`;
+      if (elMem) elMem.textContent = tables.members || 0;
+      if (elTrn) elTrn.textContent = tables.trainers || 0;
+      if (elCls) elCls.textContent = tables.classes || 0;
+      if (elEnr) elEnr.textContent = tables.class_enrollments || 0;
+      if (elEq) elEq.textContent = tables.equipment || 0;
+    } else {
+      if (dot) dot.className = 'db-status-dot offline';
+      if (title) title.textContent = 'Backend Server Offline (Running on LocalStorage)';
+      if (desc) desc.innerHTML = `To start the backend server, run <code>npm start</code> or <code>node server.js</code> in terminal.`;
+      
+      const localData = DB.load();
+      const elFile = document.getElementById('statDbFile');
+      const elSize = document.getElementById('statDbSize');
+      const elMem = document.getElementById('statDbMembers');
+      const elTrn = document.getElementById('statDbTrainers');
+      const elCls = document.getElementById('statDbClasses');
+      const elEnr = document.getElementById('statDbEnrollments');
+      const elEq = document.getElementById('statDbEquipment');
+
+      if (elFile) elFile.textContent = 'LocalStorage';
+      if (elSize) elSize.textContent = `${(JSON.stringify(localData).length / 1024).toFixed(1)} KB`;
+      if (elMem) elMem.textContent = localData.members.length;
+      if (elTrn) elTrn.textContent = localData.trainers.length;
+      if (elCls) elCls.textContent = localData.classes.length;
+      if (elEnr) {
+        let totalEnr = 0;
+        localData.classes.forEach(c => totalEnr += (c.enrolledMembers ? c.enrolledMembers.length : 0));
+        elEnr.textContent = totalEnr;
+      }
+      if (elEq) elEq.textContent = localData.equipment.length;
+    }
+  },
+
+  setSqlPreset(sql) {
+    const el = document.getElementById('sqlConsoleQuery');
+    if (el) {
+      el.value = sql;
+      this.runLiveSQLQuery();
+    }
+  },
+
+  async runLiveSQLQuery() {
+    const queryEl = document.getElementById('sqlConsoleQuery');
+    const resultArea = document.getElementById('sqlResultArea');
+    const statusEl = document.getElementById('sqlExecStatus');
+    if (!queryEl || !resultArea) return;
+
+    const query = queryEl.value.trim();
+    if (!query) {
+      resultArea.innerHTML = '<div style="padding: 1rem; color: #ef4444;">Please enter a SQL query.</div>';
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = 'Executing query against SQLite...';
+    resultArea.innerHTML = '<div style="padding: 1rem; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Running query...</div>';
+
+    try {
+      const res = await DB.executeSQL(query);
+      if (statusEl) statusEl.textContent = `Query executed successfully (${res.rowCount !== undefined ? res.rowCount + ' rows returned' : 'DML statement executed'}).`;
+
+      if (res.rows && Array.isArray(res.rows)) {
+        if (res.rows.length === 0) {
+          resultArea.innerHTML = '<div style="padding: 1rem; color: var(--text-muted);">Query returned 0 rows.</div>';
+          return;
+        }
+
+        const columns = Object.keys(res.rows[0]);
+        let tableHtml = '<table class="sql-table-display"><thead><tr>';
+        columns.forEach(col => {
+          tableHtml += `<th>${this.escapeHTML(col)}</th>`;
+        });
+        tableHtml += '</tr></thead><tbody>';
+
+        res.rows.forEach(row => {
+          tableHtml += '<tr>';
+          columns.forEach(col => {
+            const val = row[col];
+            tableHtml += `<td>${val === null ? '<span style="color:var(--text-muted);">NULL</span>' : this.escapeHTML(val)}</td>`;
+          });
+          tableHtml += '</tr>';
+        });
+
+        tableHtml += '</tbody></table>';
+        resultArea.innerHTML = tableHtml;
+      } else {
+        resultArea.innerHTML = `<div style="padding: 1rem; color: #34d399;"><i class="fa-solid fa-check"></i> ${this.escapeHTML(res.message || 'Command executed successfully.')}</div>`;
+      }
+    } catch (err) {
+      if (statusEl) statusEl.textContent = 'Query failed';
+      resultArea.innerHTML = `<div style="padding: 1rem; color: #f87171;"><i class="fa-solid fa-triangle-exclamation"></i> SQL Error: ${this.escapeHTML(err.message)}</div>`;
+    }
+  },
+
+  async syncWithBackend(showMessage = false) {
+    if (!DB.isBackendConnected) {
+      const connected = await DB.checkBackend();
+      if (!connected) {
+        if (showMessage) this.showToast("Backend server is offline. Please run 'npm start' in terminal.", "warning");
+        return;
+      }
+    }
+
+    await DB.pullFromBackend();
+    this.renderAll();
+    this.updateCharts();
+    this.refreshDbInspector();
+    if (showMessage) this.showToast("Synchronized successfully with SQLite database!", "success");
   },
 
   escapeHTML(str) {
